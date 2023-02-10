@@ -28,6 +28,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    ports:
+      - "12801:12801"      
     depends_on:
       oap-init:
         condition: service_completed_successfully # @feature: cluster; wait for init container to complete
