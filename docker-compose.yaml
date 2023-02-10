@@ -1,0 +1,54 @@
+version: '2.1'
+
+services:
+  oap-init: 
+    image: ${SW_OAP_IMAGE}
+    networks: [ sw ]
+    environment:
+      JAVA_OPTS: "-Dmode=init" 
+      SW_STORAGE: mysql
+      SW_JDBC_URL: jdbc:mysql://localhost:3306/swtest?rewriteBatchedStatements=true
+      SW_DATA_SOURCE_USER: root
+      SW_DATA_SOURCE_PASSWORD: 123456      
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  oap: 
+    image: ${SW_OAP_IMAGE}
+    networks: [ sw ]
+    environment:
+      JAVA_OPTS: "-Dmode=no-init -Xms2048m -Xmx2048m" 
+      SW_STORAGE: mysql
+      SW_JDBC_URL: jdbc:mysql://mysql:3306/swtest?rewriteBatchedStatements=true
+      SW_DATA_SOURCE_USER: root
+      SW_DATA_SOURCE_PASSWORD: 123456
+    healthcheck:
+      test: [ "CMD-SHELL", "/skywalking/bin/swctl ch" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      oap-init:
+        condition: service_completed_successfully # @feature: cluster; wait for init container to complete
+      zookeeper:
+        condition: service_healthy
+  ui:
+    image: ${SW_UI_IMAGE}
+    networks: [ sw ]
+    ports:
+      - "9999:8080"
+    depends_on:
+      oap:
+        condition: service_healthy
+    environment:
+      SW_OAP_ADDRESS: http://oap:12800 
+  mysql:
+    image: mysql:8.0.32
+    networks: [ sw ]
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: swtest
+
+networks:
+  sw:
