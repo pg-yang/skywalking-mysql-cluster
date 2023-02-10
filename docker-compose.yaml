@@ -2,7 +2,7 @@ version: '2.1'
 
 services:
   oap-init: 
-    image: ${SW_OAP_IMAGE}
+    image: yangpg9/oap
     networks: [ sw ]
     environment:
       JAVA_OPTS: "-Dmode=init" 
@@ -15,7 +15,7 @@ services:
         condition: service_healthy
 
   oap: 
-    image: ${SW_OAP_IMAGE}
+    image: yangpg9/oap
     networks: [ sw ]
     environment:
       JAVA_OPTS: "-Dmode=no-init -Xms2048m -Xmx2048m" 
@@ -34,7 +34,7 @@ services:
       zookeeper:
         condition: service_healthy
   ui:
-    image: ${SW_UI_IMAGE}
+    image: yangpg9/ui
     networks: [ sw ]
     ports:
       - "9999:8080"
