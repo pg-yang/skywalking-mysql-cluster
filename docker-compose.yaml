@@ -1,19 +1,6 @@
 version: '2.1'
 
 services:
-  oap-init: 
-    image: yangpg9/oap
-    networks: [ sw ]
-    environment:
-      JAVA_OPTS: "-Dmode=init" 
-      SW_STORAGE: mysql
-      SW_JDBC_URL: jdbc:mysql://localhost:3306/swtest?rewriteBatchedStatements=true
-      SW_DATA_SOURCE_USER: root
-      SW_DATA_SOURCE_PASSWORD: 123456      
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-
   oap: 
     image: yangpg9/oap
     networks: [ sw ]
@@ -33,8 +20,6 @@ services:
     depends_on:
       oap-init:
         condition: service_completed_successfully # @feature: cluster; wait for init container to complete
-      zookeeper:
-        condition: service_healthy
   ui:
     image: yangpg9/ui
     networks: [ sw ]
@@ -45,12 +30,30 @@ services:
         condition: service_healthy
     environment:
       SW_OAP_ADDRESS: http://oap:12800 
+
+  oap-init: 
+    image: yangpg9/oap
+    networks: [ sw ]
+    environment:
+      JAVA_OPTS: "-Dmode=init" 
+      SW_STORAGE: mysql
+      SW_JDBC_URL: jdbc:mysql://mysql:3306/swtest?rewriteBatchedStatements=true
+      SW_DATA_SOURCE_USER: root
+      SW_DATA_SOURCE_PASSWORD: 123456      
+    depends_on:
+      mysql:
+        condition: service_healthy
+
   mysql:
     image: mysql:8.0.32
     networks: [ sw ]
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_DATABASE: swtest
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10     
 
 networks:
   sw:
