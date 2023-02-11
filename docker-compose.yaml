@@ -5,7 +5,7 @@ services:
     image: yangpg9/oap
     networks: [ sw ]
     environment:
-      JAVA_OPTS: "-Dmode=no-init -Xms2048m -Xmx2048m" 
+      JAVA_OPTS: "-Dmode=no-init -Xms2048m -Xmx2048m -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005" 
       SW_STORAGE: elasticsearch
       SW_STORAGE_ES_CLUSTER_NODES: elasticsearch:9200
     healthcheck:
@@ -15,6 +15,7 @@ services:
       retries: 3
     ports:
       - "12801:12801"      
+      - "5005:5005"
     depends_on:
       oap-init:
         condition: service_completed_successfully # @feature: cluster; wait for init container to complete
